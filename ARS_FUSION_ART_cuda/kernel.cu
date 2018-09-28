@@ -1,5 +1,26 @@
+/*MIT License
+*
+*Copyright (c) 2018 Alysson Ribeiro da Silva
+*
+*Permission is hereby granted, free of charge, to any person obtaining a copy 
+*of this software and associated documentation files (the "Software"), to deal 
+*in the Software without restriction, including *without limitation the rights 
+*to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+*copies of the Software, and to permit persons to whom the Software is furnished 
+*to do so, subject *to the following conditions:
+*
+*The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*
+*THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+*EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+*FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. *IN NO EVENT SHALL THE AUTHORS 
+*OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN 
+*AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+*THE *SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 //---------------------------------------------------------------------
-// Inclusıes principais CUDA
+// Inclus√µes principais CUDA
 //---------------------------------------------------------------------
 
 // Ensure printing of CUDA runtime errors to console (define before including cub.h)
@@ -7,7 +28,7 @@
 
 #include <cuda_runtime.h>
 
-// Deve definir depois do runtime para n„o dar pau
+// Deve definir depois do runtime para n√£o dar pau
 #ifndef __CUDACC__  
 #define __CUDACC__
 #endif
@@ -23,14 +44,14 @@
 
 #include <stdio.h>		// Input e output do C
 #include <iostream>		// Strem de dados para input e output
-#include <math.h>		// Lib. de matem·tica
+#include <math.h>		// Lib. de matem√°tica
 #include <vector>		// Estrutura de dados
 #include <Windows.h>	// Api do windows para utilizar chamadas de sistema
-#include <climits>		// DefiniÁ„o dos limites m·ximos das vari·veis
-#include <string>		// Estrutura de dados para manipulaÁ„o de strings
+#include <climits>		// Defini√ß√£o dos limites m√°ximos das vari√°veis
+#include <string>		// Estrutura de dados para manipula√ß√£o de strings
 #include <sstream>		// Estrutura de dados para executar algoritmos em strings
 #include <algorithm>	// Algoritmos para serem executados em estruturas de dados
-#include <iterator>		// Iterators para manipulaÁ„o de estruturas de dados
+#include <iterator>		// Iterators para manipula√ß√£o de estruturas de dados
 #include <cstring>		// String do C
 #include <time.h>
 #include <omp.h>		// Open MP
@@ -63,7 +84,7 @@ using namespace std;
 //#define __DEBUG__
 
 //---------------------------------------------------------------------
-// Estrutura para configuraÁ„o da FUSION ART
+// Estrutura para configura√ß√£o da FUSION ART
 //---------------------------------------------------------------------
 
 typedef struct networkConfig{
@@ -81,7 +102,7 @@ typedef struct myNetwork{
 	// Variaveis fixas ------------------------------------------------
 	float* neurons;
 
-	// Variaveis de operaÁ„o ------------------------------------------
+	// Variaveis de opera√ß√£o ------------------------------------------
 	float* activity;
 	float* fuzzy_and;
 	float* neurons_norm_field;
@@ -93,7 +114,7 @@ typedef struct myNetwork{
 	int*   network_reduction_aux_T_vector_index;
 	int*   network_field_thread_index_aux;
 
-	// Variaveis para guardar informaÁıes da rede e constantes
+	// Variaveis para guardar informa√ß√µes da rede e constantes
 	int*	field_sizes;
 	float* fields_gammas;
 
@@ -104,7 +125,7 @@ typedef struct myNetwork{
 	float* t_vecPlusResonating_neurons;
 	int*   last_selected_max_index;
 
-	// Variaveis para acesso na CPU e comunicaÁ„o com GPU
+	// Variaveis para acesso na CPU e comunica√ß√£o com GPU
 	float* neurons_CPU;
 	float* activity_CPU;
 	float* readout_CPU;
@@ -112,7 +133,7 @@ typedef struct myNetwork{
 	int*   field_sizes_CPU;
 	int*   network_field_thread_index_aux_CPU;
 
-	// Variaveis para manipulaÁ„o diretamente na CPU
+	// Variaveis para manipula√ß√£o diretamente na CPU
 	std::vector<float*> fields_input;
 
 	int available_neurons;
@@ -122,8 +143,8 @@ typedef struct myNetwork{
 }FUSION_ART;
 
 //---------------------------------------------------------------------
-// InicializaÁ„o da rede e todas as suas vari·veis
-// NET_CONFIG* config: estrutura de configuraÁ„o da rede
+// Inicializa√ß√£o da rede e todas as suas vari√°veis
+// NET_CONFIG* config: estrutura de configura√ß√£o da rede
 // FUSION_ART* my_network: rede a ser instanciada
 //---------------------------------------------------------------------
 
@@ -142,13 +163,13 @@ void createNetwork(NET_CONFIG* config, FUSION_ART* my_network){
 		my_network->fields_input.push_back(new_field);
 	}
 
-	// Inicializa variaveis b·sicas
+	// Inicializa variaveis b√°sicas
 	my_network->field_sizes_CPU = config->fields_sizes;
 	my_network->field_gammas_CPU = config->fields_gammas;
 	my_network->total_fields = config->total_fields;				// quantidade de campos
 	my_network->neuron_count = ARS_MAX_NEURONS / my_network->all_fields_reserved_space;
 
-	// Variaveis para facilitar manipulaÁ„o
+	// Variaveis para facilitar manipula√ß√£o
 	int all_fields_reserved_space = my_network->all_fields_reserved_space;
 	int total_fields = my_network->total_fields;
 	int neuron_count = my_network->neuron_count;
@@ -156,7 +177,7 @@ void createNetwork(NET_CONFIG* config, FUSION_ART* my_network){
 	// Variaveis fixas -----------------------------------------------------------------------------------------------------------------
 	cudaMalloc((void**)&my_network->neurons, sizeof(float) * neuron_count * all_fields_reserved_space);
 
-	// Variaveis de operaÁ„o -----------------------------------------------------------------------------------------------------------
+	// Variaveis de opera√ß√£o -----------------------------------------------------------------------------------------------------------
 	cudaMalloc((void**)&my_network->activity, sizeof(float) * neuron_count * all_fields_reserved_space);
 	cudaMalloc((void**)&my_network->fuzzy_and, sizeof(float) * neuron_count * all_fields_reserved_space);
 	cudaMalloc((void**)&my_network->neurons_norm_field, sizeof(float) * neuron_count * total_fields);
@@ -183,16 +204,16 @@ void createNetwork(NET_CONFIG* config, FUSION_ART* my_network){
 	cudaMallocHost((void**)&my_network->network_field_thread_index_aux_CPU, sizeof(int) * neuron_count * total_fields);
 	cudaMallocHost((void**)&my_network->readout_CPU, sizeof(float) * all_fields_reserved_space);
 
-	// inicializaÁ„o dos neuronios
+	// inicializa√ß√£o dos neuronios
 	for (int i = 0; i < neuron_count * all_fields_reserved_space; i++){
-		// inicializaÁ„o dos pesos padrıes
+		// inicializa√ß√£o dos pesos padr√µes
 		my_network->neurons_CPU[i] = 1.0;
 
-		// inicializaÁ„o da atividade, input para testes
+		// inicializa√ß√£o da atividade, input para testes
 		my_network->activity_CPU[i] = 0.0;
 	}
 
-	// IncializaÁ„o do vetor de indice inicial dos campos para cada neuronio
+	// Incializa√ß√£o do vetor de indice inicial dos campos para cada neuronio
 	int startPosition = 0;
 	for (int neuron = 0; neuron < neuron_count; neuron++){
 		int neuron_index = neuron * total_fields;
@@ -211,7 +232,7 @@ void createNetwork(NET_CONFIG* config, FUSION_ART* my_network){
 	cudaMemcpy(my_network->network_reduction_aux_T_vector_index, my_network->activity_CPU, sizeof(float) * neuron_count, cudaMemcpyHostToDevice);
 	cudaMemcpy(my_network->network_field_thread_index_aux, my_network->network_field_thread_index_aux_CPU, sizeof(int) * neuron_count * total_fields, cudaMemcpyHostToDevice);
 
-	// Inicializa quantidade de neurÙnios utiliz·veis
+	// Inicializa quantidade de neur√¥nios utiliz√°veis
 	my_network->available_neurons = 1;
 }
 
@@ -242,9 +263,9 @@ void calculateBlocks(int* array_size, int* threadsInBlock, int* blocksInGrid){
 }
 
 //---------------------------------------------------------------------
-// ReduÁ„o simples utilizando bloco compartilhado
+// Redu√ß√£o simples utilizando bloco compartilhado
 // float* input: entrada a ser reduzida
-// float* globalBlockData: local onde a reduÁ„o ser· executada
+// float* globalBlockData: local onde a redu√ß√£o ser√° executada
 // int arrSize: tamanho total do vetor a ser reduzido
 // NOTA: calcular blocos e threads de acordo com o tamanho de arrSize
 //---------------------------------------------------------------------
@@ -252,7 +273,7 @@ void calculateBlocks(int* array_size, int* threadsInBlock, int* blocksInGrid){
 __global__ void simple_reduction_shared(float* input, float* globalBlockData, int arrSize){
 	extern __shared__ float shared_operation_vector[];
 
-	// InicializaÁ„o
+	// Inicializa√ß√£o
 	unsigned int threadId = threadIdx.x;
 	unsigned int index = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -262,7 +283,7 @@ __global__ void simple_reduction_shared(float* input, float* globalBlockData, in
 	else
 		shared_operation_vector[threadId] = 0.0;
 
-	// Calcula limite para saber quantas vezes dever· gerar um stride
+	// Calcula limite para saber quantas vezes dever√° gerar um stride
 	int limit = arrSize;
 	if (limit > blockDim.x)
 		limit = blockDim.x;
@@ -287,12 +308,12 @@ __global__ void simple_reduction_shared(float* input, float* globalBlockData, in
 }
 
 //---------------------------------------------------------------------
-// ReduÁ„o simples para achar max utilizando bloco compartilhado
+// Redu√ß√£o simples para achar max utilizando bloco compartilhado
 // float* input: entrada a ser reduzida
-// float* globalBlockData: local onde a reduÁ„o ser· executada
-// int* globalBlockDataMax: local onde armazenar os indices dos m·ximos
-// int arrSize: tamanho do espaÁo onde procurar pelo max
-// bool: first: identifica se È a primeira execuÁ„o para inicializaÁ„o
+// float* globalBlockData: local onde a redu√ß√£o ser√° executada
+// int* globalBlockDataMax: local onde armazenar os indices dos m√°ximos
+// int arrSize: tamanho do espa√ßo onde procurar pelo max
+// bool: first: identifica se √© a primeira execu√ß√£o para inicializa√ß√£o
 // NOTA: calcular blocos e threads de acordo com o tamanho de arrSize
 //---------------------------------------------------------------------
 
@@ -303,7 +324,7 @@ __global__ void simple_reduction_shared_max(float* input, float* globalBlockData
 	float* shared_operation_vector = (float*)&shared_op_vec[blockDim.x];
 	int   * shared_operation_vector_max = shared_op_vec;
 
-	// InicializaÁ„o
+	// Inicializa√ß√£o
 	int threadId = threadIdx.x;
 	int index = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -312,7 +333,7 @@ __global__ void simple_reduction_shared_max(float* input, float* globalBlockData
 		shared_operation_vector[threadId] = input[index];
 
 		// Os valores de indices que determinam o indice onde se encontra o maximo devem ser inicializados com um cuidado espacial,
-		// Se for a primeira execuÁ„o inicializar o indice, caso contrario inicializar com os dados j· pre-calculados
+		// Se for a primeira execu√ß√£o inicializar o indice, caso contrario inicializar com os dados j√° pre-calculados
 		if (first)
 			shared_operation_vector_max[threadId] = index;
 		else
@@ -334,10 +355,10 @@ __global__ void simple_reduction_shared_max(float* input, float* globalBlockData
 	for (int stride = 1; stride < limit; stride *= 2) {
 		int index_reduc = 2 * stride * threadId;
 
-		// Garantir que o passo da reduÁ„o nunca sair· do limite
+		// Garantir que o passo da redu√ß√£o nunca sair√° do limite
 		if (index_reduc < limit && (index_reduc + stride) < limit)
 		{
-			// Verifica qual È maios valor e armazena indice e valor em vetores globais
+			// Verifica qual √© maios valor e armazena indice e valor em vetores globais
 			if (shared_operation_vector[index_reduc] < shared_operation_vector[index_reduc + stride])
 			{
 				shared_operation_vector[index_reduc] = shared_operation_vector[index_reduc + stride];
@@ -357,11 +378,11 @@ __global__ void simple_reduction_shared_max(float* input, float* globalBlockData
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o FACADE para a reduÁ„o, poÌs deve ser feita em passos
-// float* input: o espaÁo a ser reduzido
-// float* global: o local onde a reduÁ„o ser· executada
-// int arrSize: o tamanho do espaÁo onde efetuar a busca
-// bool debug: flag que identifica se ser· impresso na tela dados de debug
+// Fun√ß√£o FACADE para a redu√ß√£o, po√≠s deve ser feita em passos
+// float* input: o espa√ßo a ser reduzido
+// float* global: o local onde a redu√ß√£o ser√° executada
+// int arrSize: o tamanho do espa√ßo onde efetuar a busca
+// bool debug: flag que identifica se ser√° impresso na tela dados de debug
 //---------------------------------------------------------------------
 
 void callReduction(float* input, float* global, int arrSize, bool debug){
@@ -375,24 +396,24 @@ void callReduction(float* input, float* global, int arrSize, bool debug){
 	// Calcula total de passos a mais a serem executados quando houverem mais blocos
 	int total_pass_limit_block = blocks / 1024;
 
-	// Total de passos padrıes para 1 bloco
+	// Total de passos padr√µes para 1 bloco
 	int total_pass = 1;
 
 	// Somar 1 passo caso tenha mais de 1 bloco
 	if (blocks > 1)
 		total_pass = 2;
 
-	// Inicializa tamanho padr„o da memoria compartilha, sempre 1024 para n„o dar problemas...
+	// Inicializa tamanho padr√£o da memoria compartilha, sempre 1024 para n√£o dar problemas...
 	int sharedMemSize = sizeof(float) * 1024;
 
-	// Faz a reduÁ„o inicial
+	// Faz a redu√ß√£o inicial
 	simple_reduction_shared << <blocks, threads, sharedMemSize >> >(input, global, arrSize);
 
-	// Chama todos os passos restantes para terminar a reduÁ„o dentro do vetor global
+	// Chama todos os passos restantes para terminar a redu√ß√£o dentro do vetor global
 	for (int i = 1; i < total_pass_limit_block + total_pass; i++)
 		simple_reduction_shared << <blocks, threads, sharedMemSize >> >(global, global, arrSize);
 
-	// DepuraÁ„o
+	// Depura√ß√£o
 	if (debug){
 		float maxValue;
 		cudaMemcpy(&maxValue, global, sizeof(float), cudaMemcpyDeviceToHost);
@@ -402,12 +423,12 @@ void callReduction(float* input, float* global, int arrSize, bool debug){
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o FACADE para a reduÁ„o de max, poÌs deve ser feita em passos
-// float* input: o espaÁo a ser reduzido
-// float* global: o local onde a reduÁ„o ser· executada
-// int* max: o local onde ser„o armazenados os indices de max
-// int arrSize: o tamanho do espaÁo onde efetuar a busca
-// bool debug: flag que identifica se ser· impresso na tela dados de debug
+// Fun√ß√£o FACADE para a redu√ß√£o de max, po√≠s deve ser feita em passos
+// float* input: o espa√ßo a ser reduzido
+// float* global: o local onde a redu√ß√£o ser√° executada
+// int* max: o local onde ser√£o armazenados os indices de max
+// int arrSize: o tamanho do espa√ßo onde efetuar a busca
+// bool debug: flag que identifica se ser√° impresso na tela dados de debug
 //---------------------------------------------------------------------
 
 void callReductionMax(float* input, float* global, int* max, int* reduced_index_mem, int arrSize, bool debug){
@@ -418,31 +439,31 @@ void callReductionMax(float* input, float* global, int* max, int* reduced_index_
 	// Apenas calcula blocos e threads a serem utilizados
 	calculateBlocks(&arrSize, &threads, &blocks);
 
-	// Calcula total de passos extras a serem executados para finalizar a reduÁ„o
+	// Calcula total de passos extras a serem executados para finalizar a redu√ß√£o
 	int total_pass_limit_block = blocks / 1024;
 
-	// Inicia quantidade de passos padrıa
+	// Inicia quantidade de passos padr√µa
 	int total_pass = 1;
 
 	// Caso tenha mais de 1 bloco deve-se fazer em dois passos
 	if (blocks > 1)
 		total_pass = 2;
 
-	// Torna par o n˙mero de threads para evitar erros de acesso a memÛria compartilhada
+	// Torna par o n√∫mero de threads para evitar erros de acesso a mem√≥ria compartilhada
 	if (threads % 2 != 0)
 		threads += 1;
 
-	// Memoria compartilhada padr„o de dois tipos de vari·veis
+	// Memoria compartilhada padr√£o de dois tipos de vari√°veis
 	int sharedMemSize = sizeof(float) * 1024 + sizeof(int) * 1024;
 
-	// Chama primeiro passo da reduÁ„o
+	// Chama primeiro passo da redu√ß√£o
 	simple_reduction_shared_max << <blocks, threads, sharedMemSize >> >(input, global, max, reduced_index_mem, arrSize, true);
 
-	// Chama restande dos passos para quantidade de blocos iniciais, calcula resto da reduÁ„o em global
+	// Chama restande dos passos para quantidade de blocos iniciais, calcula resto da redu√ß√£o em global
 	for (int i = 1; i < total_pass_limit_block + total_pass; i++)
 		simple_reduction_shared_max << <blocks, threads, sharedMemSize >> >(global, global, max, reduced_index_mem, arrSize, false);
 
-	// Impress„o de depuraÁ„o
+	// Impress√£o de depura√ß√£o
 	if (debug){
 		float result;
 		cudaMemcpy(&result, global, sizeof(float), cudaMemcpyDeviceToHost);
@@ -460,18 +481,18 @@ void callReductionMax(float* input, float* global, int* max, int* reduced_index_
 }
 
 //---------------------------------------------------------------------
-// VerificaÁ„o de resonancia - apenas verifica a resonancia de um neuronio
+// Verifica√ß√£o de resonancia - apenas verifica a resonancia de um neuronio
 // float* t_vector: vetor contendo os valores T de cada neuronio
 // float* resonated_neurons: vetor contendo a resonancia de cada neuronio
 // bool* resonated: flag de controle para determinar se resonou ou nao
-// int* chekingIndex: o Ìndice do neuronio a ser verificado
-// int arrSize: o tamanho do espaÁo a ser feita a verificaÁ„o
-// NOTA: todas as vari·veis devem estar na memÛria da GPU para melhor desempenho
+// int* chekingIndex: o √≠ndice do neuronio a ser verificado
+// int arrSize: o tamanho do espa√ßo a ser feita a verifica√ß√£o
+// NOTA: todas as vari√°veis devem estar na mem√≥ria da GPU para melhor desempenho
 //---------------------------------------------------------------------
 
 __global__ void
 check_resonance(float* t_vector, float* resonated_neurons, bool* resonated, int* checkingIndex, int arrSize){
-	// Verifica resonancia no indice que estou, caso o indice seja o tamanho do vetor ent„o È um neuronio nao comitado
+	// Verifica resonancia no indice que estou, caso o indice seja o tamanho do vetor ent√£o √© um neuronio nao comitado
 	if (resonated_neurons[checkingIndex[0]] == 1.0 || checkingIndex[0] == (arrSize - 1)){
 		(*resonated) = true;
 	}
@@ -482,8 +503,8 @@ check_resonance(float* t_vector, float* resonated_neurons, bool* resonated, int*
 
 //---------------------------------------------------------------------
 // Reseta a resonancia na GPU
-// bool* resonated: vari·vel que identifica a resonancia
-// NOTA: todas as vari·veis devem estar na memÛria da GPU
+// bool* resonated: vari√°vel que identifica a resonancia
+// NOTA: todas as vari√°veis devem estar na mem√≥ria da GPU
 //---------------------------------------------------------------------
 
 __global__ void
@@ -494,31 +515,31 @@ reset_resonance(bool* resonated){
 //---------------------------------------------------------------------
 // Calcula a soma dos campos, onde cada thread processa 1 neuronio
 // float* neurons: vetor de peso dos neuronios
-// float* field_pre_sum: vetor onde ser· armazenada a soma final
+// float* field_pre_sum: vetor onde ser√° armazenada a soma final
 // int* field_sizes: tamanho de cada campo da rede
 // int total_neurons: total de neuronios a serem calculados
 // int total_fields: total de campos
-// int all_fields_reserved_space: espaÁo reservado acumulado de todos os campos
+// int all_fields_reserved_space: espa√ßo reservado acumulado de todos os campos
 //---------------------------------------------------------------------
 
 __global__
 void block_Calculate_fields_sum(float* neurons, float* field_pre_sum, int* field_sizes, int total_neurons, int total_fields, int all_fields_reserved_space){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int field_index = index * all_fields_reserved_space;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
-	// Cada thread ir· somar seus campos de forma independente
+	// Cada thread ir√° somar seus campos de forma independente
 	int j = field_index;
 	for (int i = 0; i < total_fields; i++){
 		int		current_field_size = field_sizes[i];
@@ -530,7 +551,7 @@ void block_Calculate_fields_sum(float* neurons, float* field_pre_sum, int* field
 			field_sum += neurons[j];
 		}
 
-		// Indexa de acordo com a pos~iÁ„o do campo
+		// Indexa de acordo com a pos~i√ß√£o do campo
 		int field_pre_sum_index = index * total_fields + i;
 		field_pre_sum[field_pre_sum_index] = field_sum;
 	}
@@ -539,9 +560,9 @@ void block_Calculate_fields_sum(float* neurons, float* field_pre_sum, int* field
 	//---------------------------------------------------------------------
 	//					FIM PROCESSAMENTO PARALELO
 
-	// Impress„o de debug
+	// Impress√£o de debug
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -558,30 +579,30 @@ void block_Calculate_fields_sum(float* neurons, float* field_pre_sum, int* field
 //---------------------------------------------------------------------
 // Calcula a soma dos campos, onde cada thread processa 1 neuronio
 // float* neurons: vetor de peso dos neuronios
-// float* field_pre_sum: vetor onde ser· armazenada a soma final
+// float* field_pre_sum: vetor onde ser√° armazenada a soma final
 // int* field_sizes: tamanho de cada campo da rede
 // int total_neurons: total de neuronios a serem calculados
 // int total_fields: total de campos
-// int all_fields_reserved_space: espaÁo reservado acumulado de todos os campos
+// int all_fields_reserved_space: espa√ßo reservado acumulado de todos os campos
 //---------------------------------------------------------------------
 
 __global__
 void block_Calculate_fields_sumC(float* neurons, float* field_pre_sum, int* field_sizes, int* field_thread_index_aux, int total_fields, int arrSize){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
-	// Cada thread ir· somar seus campos de forma independente
+	// Cada thread ir√° somar seus campos de forma independente
 	if (index < arrSize){
 		//int field_index = index % total_fields;
 		int field_index = (index - (index / total_fields) * total_fields);
@@ -599,9 +620,9 @@ void block_Calculate_fields_sumC(float* neurons, float* field_pre_sum, int* fiel
 	//---------------------------------------------------------------------
 	//					FIM PROCESSAMENTO PARALELO
 
-	// Impress„o de debug
+	// Impress√£o de debug
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -619,8 +640,8 @@ void block_Calculate_fields_sumC(float* neurons, float* field_pre_sum, int* fiel
 // void att utilizado para copiar um valor para outra variavel
 // float* input: vetor de entrada
 // float* value: vetor com valor a ser copiado
-// int position: posiÁ„o onde guardar o valor no input
-// NOTA: o valor copiado È sempre a primeira posiÁ„o do vetor value
+// int position: posi√ß√£o onde guardar o valor no input
+// NOTA: o valor copiado √© sempre a primeira posi√ß√£o do vetor value
 //---------------------------------------------------------------------
 
 __global__ void att(float* input, float* value, int position){
@@ -628,11 +649,11 @@ __global__ void att(float* input, float* value, int position){
 }
 
 //---------------------------------------------------------------------
-// Calcula a soma dos campos com reduÁıes, porÈm faz o loop dos neuronios na CPU
-// FUSION_ART* network: rede onde est„o todas as vari·veis
+// Calcula a soma dos campos com redu√ß√µes, por√©m faz o loop dos neuronios na CPU
+// FUSION_ART* network: rede onde est√£o todas as vari√°veis
 // float* input: entrada, todos os neuronios e campos
-// float* aux_vector: vetor auxiliar para efetuar a reduÁ„o
-// float* result: vetor onde as reduÁıes devem ser guardadas
+// float* aux_vector: vetor auxiliar para efetuar a redu√ß√£o
+// float* result: vetor onde as redu√ß√µes devem ser guardadas
 //---------------------------------------------------------------------
 
 void block_Calculate_fields_sumB(FUSION_ART* network, float* input, float* aux_vector, float* result){
@@ -646,10 +667,10 @@ void block_Calculate_fields_sumB(FUSION_ART* network, float* input, float* aux_v
 			if (field > 0)
 				desloc += network->field_sizes_CPU[field - 1];
 
-			// Efetua reduÁ„o do campo
+			// Efetua redu√ß√£o do campo
 			callReduction(input + desloc, aux_vector, network->field_sizes_CPU[field], false);
 
-			// Copia resultado para o vetor result na devida posiÁ„o
+			// Copia resultado para o vetor result na devida posi√ß√£o
 			int index = neuron * network->total_fields + field;
 			att << <1, 1 >> >(result, aux_vector, index);
 		}
@@ -658,7 +679,7 @@ void block_Calculate_fields_sumB(FUSION_ART* network, float* input, float* aux_v
 
 //---------------------------------------------------------------------
 // Calcula o vetor T final de todos os neuronios
-// float* division: vetor contendo a divis„o da equaÁ„o de T
+// float* division: vetor contendo a divis√£o da equa√ß√£o de T
 // float* T_vector: vetor de saida com os valores T
 // int total_neurons: total de neuronios a serem calculados
 // int total_fields: total de campos por neuronio
@@ -668,7 +689,7 @@ __global__
 void block_Calculate_final_T_vector(float* division, float* T_vector, float* fields_gamma, int total_neurons, int total_fields){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 
 	// shared int;
 	// extern shared int;
@@ -677,12 +698,12 @@ void block_Calculate_final_T_vector(float* division, float* T_vector, float* fie
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_neurons){
 		float sum = 0.0;
@@ -703,7 +724,7 @@ void block_Calculate_final_T_vector(float* division, float* T_vector, float* fie
 	//---------------------------------------------------------------------
 	//					FIM PROCESSAMENTO PARALELO
 #if defined __T_VECTOR_DEBUG__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -729,18 +750,18 @@ __global__
 void block_calculate_fuzzy_and(float* neurons, float* input, float* output, int total_size){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 	// Variaveis locais
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_size){
 		if (input[index] < neurons[index])
@@ -754,7 +775,7 @@ void block_calculate_fuzzy_and(float* neurons, float* input, float* output, int 
 	//					FIM PROCESSAMENTO PARALELO
 
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -778,17 +799,17 @@ __global__
 void block_simple_add(float* input, float increment, int total_size){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 	// Variaveis locais
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_size){
 		input[index] = input[index] + increment;
@@ -799,7 +820,7 @@ void block_simple_add(float* input, float increment, int total_size){
 	//					FIM PROCESSAMENTO PARALELO
 
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -816,17 +837,17 @@ __global__
 void block_simple_vecadd(float* A, float* B, float* result, int total_size){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 	// Variaveis locais
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_size){
 		result[index] = A[index] + B[index];
@@ -837,7 +858,7 @@ void block_simple_vecadd(float* A, float* B, float* result, int total_size){
 	//					FIM PROCESSAMENTO PARALELO
 
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -851,9 +872,9 @@ void block_simple_vecadd(float* A, float* B, float* result, int total_size){
 }
 
 //---------------------------------------------------------------------
-// Calcula a multiplicaÁ„o simples
+// Calcula a multiplica√ß√£o simples
 // float* input: vetor de entrada
-// float value: valor que cada elemento de input ser· multiplicado
+// float value: valor que cada elemento de input ser√° multiplicado
 // int total_size: tamanho total a ser calculado
 //---------------------------------------------------------------------
 
@@ -861,17 +882,17 @@ __global__
 void block_simple_mul(float* input, float value, int total_size){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 	// Variaveis locais
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_size){
 		input[index] = input[index] * value;
@@ -882,7 +903,7 @@ void block_simple_mul(float* input, float value, int total_size){
 	//					FIM PROCESSAMENTO PARALELO
 
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -896,10 +917,10 @@ void block_simple_mul(float* input, float value, int total_size){
 }
 
 //---------------------------------------------------------------------
-// Efetua a divis„o do indice de dois vetores, variaveis com nome especial por conveniencia da aplicaÁ„o
+// Efetua a divis√£o do indice de dois vetores, variaveis com nome especial por conveniencia da aplica√ß√£o
 // float* fuzzy_and: vetor de entrada
 // float* norm: vetor com denominadores
-// float* division: vetor de saida com as divisıes
+// float* division: vetor de saida com as divis√µes
 // int total_size: total de elementos a serem calculados
 //---------------------------------------------------------------------
 
@@ -907,20 +928,20 @@ __global__
 void block_fuzzy_art_division(float* fuzzy_and, float* norm, float* division, int total_size){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 	// Variaveis locais
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
-	// Sincronizar aqui para garantir que todas as threads ter„o os dados inicializados
+	// Sincronizar aqui para garantir que todas as threads ter√£o os dados inicializados
 	//__syncthreads();
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_size){
 		if (norm[index] <= 0.0)
@@ -935,7 +956,7 @@ void block_fuzzy_art_division(float* fuzzy_and, float* norm, float* division, in
 
 
 #if defined __VERBOSE__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -951,8 +972,8 @@ void block_fuzzy_art_division(float* fuzzy_and, float* norm, float* division, in
 //---------------------------------------------------------------------
 // Calcula vetor de resonancia dado o M de cada campo de cada neuronio
 // float* division: vetor de entrada com os m_js
-// float* resonated_vetor: vetor de saida com os neuronios que resonaram ou n„o
-// float precision: precis„o de resonancia
+// float* resonated_vetor: vetor de saida com os neuronios que resonaram ou n√£o
+// float precision: precis√£o de resonancia
 // int total_neurons: total de neuronios a serem verificados
 // int total_fields: total de campos por neuronio
 //---------------------------------------------------------------------
@@ -961,7 +982,7 @@ __global__
 void block_Calculate_resonated_vector(float* division, float* resonated_vector, float precision, int total_neurons, int total_fields){
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							DECLARA«’ES
+	//							DECLARA√á√ïES
 
 	// shared int;
 	// extern shared int;
@@ -970,7 +991,7 @@ void block_Calculate_resonated_vector(float* division, float* resonated_vector, 
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//							INICIALIZA«√O
+	//							INICIALIZA√á√ÉO
 
 	resonated_vector[index] = 0.0;
 
@@ -978,7 +999,7 @@ void block_Calculate_resonated_vector(float* division, float* resonated_vector, 
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
-	//						OPERA«’ES PARALELAS
+	//						OPERA√á√ïES PARALELAS
 
 	if (index < total_neurons){
 
@@ -1002,7 +1023,7 @@ void block_Calculate_resonated_vector(float* division, float* resonated_vector, 
 	//---------------------------------------------------------------------
 	//					FIM PROCESSAMENTO PARALELO
 #if defined __RESONANCE_VECTOR_DEBUG__
-	// Garantir que todos as threads tenham executado suas operaÁıes
+	// Garantir que todos as threads tenham executado suas opera√ß√µes
 	__syncthreads();
 
 	// Imprimir resultados apenas uma vez utilizando a thread 0 do processador 0
@@ -1022,16 +1043,16 @@ void block_Calculate_resonated_vector(float* division, float* resonated_vector, 
 // float* fuzzy_and: vetor de entrada para aprendizado
 // float beta: taxa de aprendizado
 // int learning_neuron: indice do neuronio a utilizar para aprender
-// int field_reserved_space: espaÁo reservado de todos os indices para indexar corretamente
+// int field_reserved_space: espa√ßo reservado de todos os indices para indexar corretamente
 //---------------------------------------------------------------------
 
 __global__ void learn(float* neurons, float* fuzzy_and, float beta, int* learning_neuron, int field_reserved_space){
-	// DefiniÁ„o das vari·veis --------------------------------------------------
+	// Defini√ß√£o das vari√°veis --------------------------------------------------
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int start_position = *learning_neuron * field_reserved_space;
 	int learning_index = start_position + index;
 
-	// Aprender apenas se estiver dentro do intervalo de computaÁ„o do aprendizado
+	// Aprender apenas se estiver dentro do intervalo de computa√ß√£o do aprendizado
 	neurons[learning_index] = (1.0 - beta) * neurons[learning_index] + beta * fuzzy_and[learning_index];
 
 #if defined __VERBOSE__
@@ -1046,18 +1067,18 @@ __global__ void learn(float* neurons, float* fuzzy_and, float beta, int* learnin
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o na CPU para calcular o T
+// Fun√ß√£o na CPU para calcular o T
 // float* neurons: todos os neuronios da rede
 // float* activity: vetor de ativida da rede
 // float* fuzzyAnd: vetor a ser utilizado para armazenar o fuzzy and
 // float* neurons_norm_field: vetor para guardar a norma dos neuronios
 // float* fuzzy_and_norm_field: vetor para guardar norma fuzzy
-// float* t_vector_division: vetor para guardar divis„o das normas
+// float* t_vector_division: vetor para guardar divis√£o das normas
 // float* t_vector: vetor para guardar o T_vector final
 // int* field_sizes: tamanho de todos os campos
 // int total_neurons: total de neuronios a serem processador
 // int total_fields: total de campos por neuronio
-// int field_reserved_space: espaÁo total reservado para todos os campos
+// int field_reserved_space: espa√ßo total reservado para todos os campos
 //---------------------------------------------------------------------
 
 void calculate_T_vector(
@@ -1124,7 +1145,7 @@ void calculate_T_vector(
 
 
 
-	{// ADICIONAR ALPHA A CADA NORMA DOS NEURONIOS e EFETUA A DIVIS√O das normas -----------------------------
+	{// ADICIONAR ALPHA A CADA NORMA DOS NEURONIOS e EFETUA A DIVIS√ÉO das normas -----------------------------
 		// Calcula numero de campos total considerando cada neuronio ativo
 		int total_fields_per_neuron = total_fields * total_neurons;
 
@@ -1132,13 +1153,13 @@ void calculate_T_vector(
 		calculateBlocks(&total_fields_per_neuron, &threads, &blocks);
 		block_simple_add << <blocks, threads >> > (neurons_norm_field, alpha, total_fields_per_neuron);
 
-		// Efetua divis„o dos elementos da norma do peso e norma do fuzzy and
+		// Efetua divis√£o dos elementos da norma do peso e norma do fuzzy and
 		block_fuzzy_art_division << <blocks, threads >> >(fuzzy_and_norm_field, neurons_norm_field, t_vector_division, total_fields_per_neuron);
 	}//-------------------------------------------------------------------------------------------------------
 
 
 
-	{// CALCULO FINAL DE T COM SOMATORIO DOS CAMPOS DEPOIS DA DIVIS√O ----------------------------------------
+	{// CALCULO FINAL DE T COM SOMATORIO DOS CAMPOS DEPOIS DA DIVIS√ÉO ----------------------------------------
 		// Efetua a soma dos campos
 		calculateBlocks(&total_neurons, &threads, &blocks);
 		block_Calculate_final_T_vector << <blocks, threads >> >(t_vector_division, t_vector, field_gammas, total_neurons, total_fields);
@@ -1155,19 +1176,19 @@ void calculate_T_vector(
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o na CPU para calcular o T
+// Fun√ß√£o na CPU para calcular o T
 // float* neurons: todos os neuronios da rede
 // float* activity: vetor de ativida da rede
 // float* fuzzyAnd: vetor a ser utilizado para armazenar o fuzzy and
 // float* neurons_norm_field: vetor para guardar a norma dos neuronios
 // float* fuzzy_and_norm_field: vetor para guardar norma fuzzy
-// float* resonance_division: vetor para guardar divis„o das normas
+// float* resonance_division: vetor para guardar divis√£o das normas
 // float* ressonating_neurons: vetor para guardar o T_vector final
-// float precision: precis„o a ser utilizada para verificar resonancia
+// float precision: precis√£o a ser utilizada para verificar resonancia
 // int* field_sizes: tamanho de todos os campos
 // int total_neurons: total de neuronios a serem processador
 // int total_fields: total de campos por neuronio
-// int field_reserved_space: espaÁo total reservado para todos os campos
+// int field_reserved_space: espa√ßo total reservado para todos os campos
 //---------------------------------------------------------------------
 
 void calculate_resonance(
@@ -1189,7 +1210,7 @@ void calculate_resonance(
 	int blocks = 0;
 
 	{// CALCULA NORMA DA ATIVIDADE COM OS PESOS -------------------------------------------------------------
-		// Calcula blocos e threads de acordo com total de neuronios para efetuar areduÁ„o da atividade
+		// Calcula blocos e threads de acordo com total de neuronios para efetuar aredu√ß√£o da atividade
 		calculateBlocks(&total_neurons, &threads, &blocks);
 
 		// Calcula a normal da atividade
@@ -1206,14 +1227,14 @@ void calculate_resonance(
 
 
 
-	{// CALCULA DIVIS√O DA NORMA DO FUZZY AND e NORMA DA ATIVIDADE -------------------------------------------
-		// Calcular a divis„o para cada campo de cado neuronio
+	{// CALCULA DIVIS√ÉO DA NORMA DO FUZZY AND e NORMA DA ATIVIDADE -------------------------------------------
+		// Calcular a divis√£o para cada campo de cado neuronio
 		int total_fields_per_neuron = total_fields * total_neurons;
 
 		// Calcular blocos e threads de acordo com total de campos por neuronio para cada neuronio
 		calculateBlocks(&total_fields_per_neuron, &threads, &blocks);
 
-		// Efetua divis„o dos elementos da norma do peso e norma do fuzzy and
+		// Efetua divis√£o dos elementos da norma do peso e norma do fuzzy and
 		block_fuzzy_art_division << <blocks, threads >> >(fuzzy_and_norm_field, neurons_norm_field, resonance_division, total_fields_per_neuron);
 	}//-------------------------------------------------------------------------------------------------------
 
@@ -1241,10 +1262,10 @@ void calculate_resonance(
 //---------------------------------------------------------------------
 
 void activity_read_out(FUSION_ART* network, int selected_neuron){
-	// Indice que ser· efetuado o readout para a CPU
+	// Indice que ser√° efetuado o readout para a CPU
 	int reading_index = network->all_fields_reserved_space * selected_neuron;
 
-	// Efetua copia de espaÁo de memoria do neuronio que dara o readout
+	// Efetua copia de espa√ßo de memoria do neuronio que dara o readout
 	cudaMemcpy(network->readout_CPU, network->fuzzy_and + reading_index, sizeof(float) * network->all_fields_reserved_space, cudaMemcpyDeviceToHost);
 }
 
@@ -1261,10 +1282,10 @@ void inputToGPUActivity(FUSION_ART* network, float* super_input){
 		// Pega tamanho do campo para calcular largura do passo na memoria
 		int field_size = network->field_sizes_CPU[field];
 
-		// Copia campo para a memoria no super_input utilizando tamanho do campo e posiÁ„o inicial dada pelo field_start_index
+		// Copia campo para a memoria no super_input utilizando tamanho do campo e posi√ß√£o inicial dada pelo field_start_index
 		cudaMemcpy(&super_input[field_start_index], network->fields_input[field], sizeof(float) * field_size, cudaMemcpyHostToHost);
 
-		// Atualiza posiÁ„o inicial para copiar o proximo campo
+		// Atualiza posi√ß√£o inicial para copiar o proximo campo
 		field_start_index += field_size;
 	}
 
@@ -1293,20 +1314,20 @@ void printFreeMem(){
 }
 
 //---------------------------------------------------------------------
-// Executa uma iteraÁ„o de consulta a rede, pode ser em modo aprendizado ou n„o
+// Executa uma itera√ß√£o de consulta a rede, pode ser em modo aprendizado ou n√£o
 // FUSION_ART* network: rede a ser utilizada
 // float learning_rate: taxa de aprendizado
 // float resonance_precision: fator de resonancia a ser utilizado
-// bool learning: flag para saber se deve aprender ou n„o
-// bool debug: flag para saber se deve imprimir variaveis de depuraÁ„o
+// bool learning: flag para saber se deve aprender ou n√£o
+// bool debug: flag para saber se deve imprimir variaveis de depura√ß√£o
 //---------------------------------------------------------------------
 
 int run_network(FUSION_ART* network, float learning_rate, float resonance_precision, bool learning, bool debug){
-	// Todas as operaÁıes s„o feitas em paralelo, ent„o executa tudo de uma vez mesmo que n„o seja necess·rio
-	int threads = 1; // valor padr„o
-	int blocks = 1; // valor padr„o
+	// Todas as opera√ß√µes s√£o feitas em paralelo, ent√£o executa tudo de uma vez mesmo que n√£o seja necess√°rio
+	int threads = 1; // valor padr√£o
+	int blocks = 1; // valor padr√£o
 
-	// Neuronio a retornar caso faÁa alguma checagem
+	// Neuronio a retornar caso fa√ßa alguma checagem
 	int selected_neuron = 0;
 
 	// Garantir que nunca fara uma busca em neuronios fora do total armazenado
@@ -1325,11 +1346,11 @@ int run_network(FUSION_ART* network, float learning_rate, float resonance_precis
 		network->t_vector,
 		network->fields_gammas,
 		network->field_sizes,
-		network->available_neurons, // n„o usar neuron_count, caso contrario ir· calcular um vetor imenso de cara
+		network->available_neurons, // n√£o usar neuron_count, caso contrario ir√° calcular um vetor imenso de cara
 		network->total_fields,
 		network->all_fields_reserved_space);
 
-	// Aprender apenas se necess·rio
+	// Aprender apenas se necess√°rio
 	if (!learning){
 		calculateBlocks(&network->available_neurons, &threads, &blocks);
 		callReductionMax(network->t_vector, network->network_reduction_aux_T_vector, network->network_reduction_aux_T_vector_index, network->last_selected_max_index, network->available_neurons, false);
@@ -1346,7 +1367,7 @@ int run_network(FUSION_ART* network, float learning_rate, float resonance_precis
 			network->ressonating_neurons,
 			resonance_precision,
 			network->field_sizes,
-			network->available_neurons, // n„o usar neuron_count, caso contrario ir· calcular um vetor imenso de cara
+			network->available_neurons, // n√£o usar neuron_count, caso contrario ir√° calcular um vetor imenso de cara
 			network->total_fields,
 			network->all_fields_reserved_space);
 
@@ -1381,7 +1402,7 @@ int run_network(FUSION_ART* network, float learning_rate, float resonance_precis
 	// Efetua copia do neuronio selecionado
 	cudaMemcpy(&selected_neuron, network->last_selected_max_index, sizeof(int), cudaMemcpyDeviceToHost);
 	selected_neuron = network->available_neurons - 1;
-	// Se selecionado neurÙnio n„o comitado comitar ele e criar um novo
+	// Se selecionado neur√¥nio n√£o comitado comitar ele e criar um novo
 	if (selected_neuron == network->available_neurons - 1)
 		network->available_neurons++;
 
@@ -1393,7 +1414,7 @@ int run_network(FUSION_ART* network, float learning_rate, float resonance_precis
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o de teste das operaÁıes na rede.
+// Fun√ß√£o de teste das opera√ß√µes na rede.
 // Dede criar 4 neuronios e nunca resonar.
 //---------------------------------------------------------------------
 
@@ -1401,7 +1422,7 @@ void test_function(){
 	FUSION_ART network;
 	NET_CONFIG config;
 
-	// Cria objeto de configuraÁ„o da rede
+	// Cria objeto de configura√ß√£o da rede
 	config.total_fields = 2;
 	int* field_sizes = new int[config.total_fields];
 	field_sizes[0] = 4;
@@ -1420,7 +1441,7 @@ void test_function(){
 	float* super_input; 
 	cudaMallocHost((void**)&super_input, sizeof(float)*network.all_fields_reserved_space);
 
-	// Referencia das variaveis de entrada para manipulaÁ„o
+	// Referencia das variaveis de entrada para manipula√ß√£o
 	float* field_input = network.fields_input[0];
 	float* reward_field = network.fields_input[1];
 
@@ -1496,7 +1517,7 @@ void test_function(){
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o de teste das rotinar de reduÁ„o e max
+// Fun√ß√£o de teste das rotinar de redu√ß√£o e max
 // Deve imprimir valores consistentes em todo o teste, 
 // caso contrario tem algum problema
 //---------------------------------------------------------------------
@@ -1530,7 +1551,7 @@ void reduction_test(){
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o de execuÁ„o da rede
+// Fun√ß√£o de execu√ß√£o da rede
 //---------------------------------------------------------------------
 
 void netfunc(){
@@ -1539,7 +1560,7 @@ void netfunc(){
 	FUSION_ART network;
 	NET_CONFIG config;
 
-	// Cria objeto de configuraÁ„o da rede
+	// Cria objeto de configura√ß√£o da rede
 	config.total_fields = 9;
 	int* field_sizes; cudaMallocHost((void**)&field_sizes, sizeof(int) * config.total_fields);// new int[config.total_fields];
 
@@ -1551,7 +1572,7 @@ void netfunc(){
 	field_sizes[4] = 11; //ambiente
 	field_sizes[5] = 11; //ambiente
 	field_sizes[6] = 10; //ambiente
-	field_sizes[7] = 20; //aÁıes
+	field_sizes[7] = 20; //a√ß√µes
 	field_sizes[8] = 1;  //reward
 
 	float* field_gammas; cudaMallocHost((void**)&field_gammas, sizeof(float) * config.total_fields); //new float[config.total_fields];
@@ -1562,7 +1583,7 @@ void netfunc(){
 	field_gammas[4] = 1.0f; //ambiente
 	field_gammas[5] = 1.0f; //ambiente
 	field_gammas[6] = 1.0f; //ambiente
-	field_gammas[7] = 1.0f; //aÁıes
+	field_gammas[7] = 1.0f; //a√ß√µes
 	field_gammas[8] = 1.0f; //reward
 
 	// Configura fields
@@ -1579,13 +1600,13 @@ void netfunc(){
 	// Cria rede na GPU
 	createNetwork(&config, &network);
 
-	// ConfiguraÁıes
+	// Configura√ß√µes
 	float learning_rate = 0.8f;
 	float resonance_precision = 0.50f;
 	bool debug = false;
 	bool learning = true;
 
-	// Contagem de execuÁ„o
+	// Contagem de execu√ß√£o
 	int iteractions = 0;
 	int total_iteractions = 0;
 	float execution_time_sum = 0.0f;
@@ -1598,7 +1619,7 @@ void netfunc(){
 
 	const int pipe_buffer_size = 2048;
 
-	// Cria um pipe padr„o para operaÁıes
+	// Cria um pipe padr√£o para opera√ß√µes
 	HANDLE _named_pipe;
 	DWORD  cbRead, cbWritten;
 	TCHAR  inputBuffer[pipe_buffer_size];
@@ -1609,13 +1630,13 @@ void netfunc(){
 	// Cria o pipe com a chamada de sistema
 	_named_pipe = CreateNamedPipe(
 		"\\\\.\\pipe\\fusionartpipe", // nome do pipe
-		PIPE_ACCESS_DUPLEX, // tipo do pipe, m„o ˙nica dupla, duplex...
+		PIPE_ACCESS_DUPLEX, // tipo do pipe, m√£o √∫nica dupla, duplex...
 		PIPE_TYPE_BYTE, // modo de armazenamento do pipe
 		1, // quantidade de pipes que podem ser criados
 		pipe_buffer_size, // tamanho do buffer de saida
 		pipe_buffer_size, // tamanho do buffer de entrada
-		0, // Tempo de espera para criaÁ„o, 0 resulta em tempo padr„o de 50ms
-		PIPE_ACCEPT_REMOTE_CLIENTS); // atributos de seguranÁa
+		0, // Tempo de espera para cria√ß√£o, 0 resulta em tempo padr√£o de 50ms
+		PIPE_ACCEPT_REMOTE_CLIENTS); // atributos de seguran√ßa
 
 	int last_err = GetLastError();
 
@@ -1629,7 +1650,7 @@ void netfunc(){
 			&cbRead,
 			NULL);
 
-		// Faz as operaÁıes com os valores lidos
+		// Faz as opera√ß√µes com os valores lidos
 		if (_opState == TRUE){
 
 #if defined __VERBOSE__
@@ -1657,28 +1678,28 @@ void netfunc(){
 				}
 			}
 
-			// Configura modo de operaÁ„o
+			// Configura modo de opera√ß√£o
 			learning = (atoi(input[input.size() - 1].c_str()) == 1);
 
 			// Executar FUSION
 			//inputToGPUActivity(&network, super_input);
 
-			// Medir tempo de execuÁ„o
+			// Medir tempo de execu√ß√£o
 			clock_t tStart = clock();
 
 			int	selected_neuron = run_network(&network, learning_rate, resonance_precision, learning, debug);
 
-			// Medir tempo de execuÁ„o
+			// Medir tempo de execu√ß√£o
 			clock_t tEnd = clock();
 
-			// Soma tempo de execuÁ„o para pegar mÈdia
+			// Soma tempo de execu√ß√£o para pegar m√©dia
 			execution_time_sum += ((float)(tEnd - tStart) / CLOCKS_PER_SEC);
 
-			// Total de iteraÁıes do algoritmo
+			// Total de itera√ß√µes do algoritmo
 			iteractions++;
 			total_iteractions++;
 
-			// Imprimir apenas apÛs mil execuÁıes
+			// Imprimir apenas ap√≥s mil execu√ß√µes
 			if (iteractions % 500 == 0){
 				printf("\nMedia do tempo de execucao das rotinas da rede: %fs\n", execution_time_sum / (float)iteractions);
 				printFreeMem();
@@ -1686,7 +1707,7 @@ void netfunc(){
 				printf("Total de iteracoes ate o momento: %d\n", total_iteractions);
 				printf("----------------------------------------------------------\n");
 
-				// Reseta variaveis para nao poluir avaliaÁ„o
+				// Reseta variaveis para nao poluir avalia√ß√£o
 				iteractions = 0;
 				execution_time_sum = 0.0f;
 			}
@@ -1723,10 +1744,10 @@ void netfunc(){
  */
 int main(int argc, char** argv)
 {
-	// FunÁ„o de execuÁ„o principal da rede
+	// Fun√ß√£o de execu√ß√£o principal da rede
 	netfunc();
 	
-	// Testes de reduÁ„o
+	// Testes de redu√ß√£o
 	//reduction_test();
 
 	// Testes de funcionamento da rede
