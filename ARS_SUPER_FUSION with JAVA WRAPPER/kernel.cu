@@ -1,5 +1,26 @@
+/*MIT License
+*
+*Copyright (c) 2018 Alysson Ribeiro da Silva
+*
+*Permission is hereby granted, free of charge, to any person obtaining a copy 
+*of this software and associated documentation files (the "Software"), to deal 
+*in the Software without restriction, including *without limitation the rights 
+*to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+*copies of the Software, and to permit persons to whom the Software is furnished 
+*to do so, subject *to the following conditions:
+*
+*The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*
+*THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+*EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+*FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. *IN NO EVENT SHALL THE AUTHORS 
+*OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN 
+*AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+*THE *SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 //---------------------------------------------------------------------
-// Inclusıes principais CUDA
+// Inclus√µes principais CUDA
 //---------------------------------------------------------------------
 
 // Ensure printing of CUDA runtime errors to console (define before including cub.h)
@@ -7,7 +28,7 @@
 
 #include <cuda_runtime.h>
 
-// Deve definir depois do runtime para n„o dar pau
+// Deve definir depois do runtime para n√£o dar pau
 #ifndef __CUDACC__  
 #define __CUDACC__
 #endif
@@ -23,14 +44,14 @@
 
 #include <stdio.h>		// Input e output do C
 #include <iostream>		// Strem de dados para input e output
-#include <math.h>		// Lib. de matem·tica
+#include <math.h>		// Lib. de matem√°tica
 #include <vector>		// Estrutura de dados
 //#include <Windows.h>	// Api do windows para utilizar chamadas de sistema
-#include <climits>		// DefiniÁ„o dos limites m·ximos das vari·veis
-#include <string>		// Estrutura de dados para manipulaÁ„o de strings
+#include <climits>		// Defini√ß√£o dos limites m√°ximos das vari√°veis
+#include <string>		// Estrutura de dados para manipula√ß√£o de strings
 #include <sstream>		// Estrutura de dados para executar algoritmos em strings
 #include <algorithm>	// Algoritmos para serem executados em estruturas de dados
-#include <iterator>		// Iterators para manipulaÁ„o de estruturas de dados
+#include <iterator>		// Iterators para manipula√ß√£o de estruturas de dados
 #include <cstring>		// String do C
 #include <fstream>		// Leitura de arquivo
 #include <time.h>
@@ -127,9 +148,9 @@ __global__ void setValue(double* out, double value, int pos){
 }
 
 //---------------------------------------------------------------------
-// ReduÁ„o simples utilizando bloco compartilhado
+// Redu√ß√£o simples utilizando bloco compartilhado
 // double* input: entrada a ser reduzida
-// double* globalBlockData: local onde a reduÁ„o ser· executada
+// double* globalBlockData: local onde a redu√ß√£o ser√° executada
 // int arrSize: tamanho total do vetor a ser reduzido
 // NOTA: calcular blocos e threads de acordo com o tamanho de arrSize
 //---------------------------------------------------------------------
@@ -137,7 +158,7 @@ __global__ void setValue(double* out, double value, int pos){
 __global__ void simple_reduction_shared(int* input, int* globalBlockData, int* arrSize_input){
 	extern __shared__ int shared_operation_vector[];
 
-	// InicializaÁ„o
+	// Inicializa√ß√£o
 	int threadId = threadIdx.x;
 	int index = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -162,10 +183,10 @@ __global__ void simple_reduction_shared(int* input, int* globalBlockData, int* a
 	for (int stride = 1; stride < limit; stride *= 2) {
 		int index_reduc = 2 * stride * threadId;
 
-		// Garantir que o passo da reduÁ„o nunca sair· do limite
+		// Garantir que o passo da redu√ß√£o nunca sair√° do limite
 		if (index_reduc < limit && (index_reduc + stride) < limit)
 		{
-			// Verifica qual È maios valor e armazena indice e valor em vetores globais
+			// Verifica qual √© maios valor e armazena indice e valor em vetores globais
 			shared_operation_vector[index_reduc] += shared_operation_vector[index_reduc + stride];
 		}
 
@@ -178,12 +199,12 @@ __global__ void simple_reduction_shared(int* input, int* globalBlockData, int* a
 }
 
 //---------------------------------------------------------------------
-// ReduÁ„o simples para achar max utilizando bloco compartilhado
+// Redu√ß√£o simples para achar max utilizando bloco compartilhado
 // double* input: entrada a ser reduzida
-// double* globalBlockData: local onde a reduÁ„o ser· executada
-// int* globalBlockDataMax: local onde armazenar os indices dos m·ximos
-// int arrSize: tamanho do espaÁo onde procurar pelo max
-// bool: first: identifica se È a primeira execuÁ„o para inicializaÁ„o
+// double* globalBlockData: local onde a redu√ß√£o ser√° executada
+// int* globalBlockDataMax: local onde armazenar os indices dos m√°ximos
+// int arrSize: tamanho do espa√ßo onde procurar pelo max
+// bool: first: identifica se √© a primeira execu√ß√£o para inicializa√ß√£o
 // NOTA: calcular blocos e threads de acordo com o tamanho de arrSize
 //---------------------------------------------------------------------
 
@@ -194,7 +215,7 @@ __global__ void simple_reduction_shared_max(double* input, double* globalBlockDa
 	double* shared_operation_vector = (double*)&shared_op_vec[blockDim.x];
 	int   * shared_operation_vector_max = shared_op_vec;
 
-	// InicializaÁ„o
+	// Inicializa√ß√£o
 	int threadId = threadIdx.x;
 	int index = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -205,7 +226,7 @@ __global__ void simple_reduction_shared_max(double* input, double* globalBlockDa
 		shared_operation_vector[threadId] = input[index];
 
 		// Os valores de indices que determinam o indice onde se encontra o maximo devem ser inicializados com um cuidado espacial,
-		// Se for a primeira execuÁ„o inicializar o indice, caso contrario inicializar com os dados j· pre-calculados
+		// Se for a primeira execu√ß√£o inicializar o indice, caso contrario inicializar com os dados j√° pre-calculados
 		if (first)
 			shared_operation_vector_max[threadId] = index;
 		else
@@ -227,10 +248,10 @@ __global__ void simple_reduction_shared_max(double* input, double* globalBlockDa
 	for (int stride = 1; stride < limit; stride *= 2) {
 		int index_reduc = 2 * stride * threadId;
 
-		// Garantir que o passo da reduÁ„o nunca sair· do limite
+		// Garantir que o passo da redu√ß√£o nunca sair√° do limite
 		if (index_reduc < limit && (index_reduc + stride) < limit)
 		{
-			// Verifica qual È maios valor e armazena indice e valor em vetores globais
+			// Verifica qual √© maios valor e armazena indice e valor em vetores globais
 			if (shared_operation_vector[index_reduc] < shared_operation_vector[index_reduc + stride])
 			{
 				shared_operation_vector[index_reduc] = shared_operation_vector[index_reduc + stride];
@@ -249,11 +270,11 @@ __global__ void simple_reduction_shared_max(double* input, double* globalBlockDa
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o FACADE para a reduÁ„o, poÌs deve ser feita em passos
-// double* input: o espaÁo a ser reduzido
-// double* global: o local onde a reduÁ„o ser· executada
-// int arrSize: o tamanho do espaÁo onde efetuar a busca
-// bool debug: flag que identifica se ser· impresso na tela dados de debug
+// Fun√ß√£o FACADE para a redu√ß√£o, po√≠s deve ser feita em passos
+// double* input: o espa√ßo a ser reduzido
+// double* global: o local onde a redu√ß√£o ser√° executada
+// int arrSize: o tamanho do espa√ßo onde efetuar a busca
+// bool debug: flag que identifica se ser√° impresso na tela dados de debug
 //---------------------------------------------------------------------
 
 void callReduction(int* input, int* global, int* arrSize, int maxArrSize, bool debug){
@@ -267,26 +288,26 @@ void callReduction(int* input, int* global, int* arrSize, int maxArrSize, bool d
 	// Calcula total de passos a mais a serem executados quando houverem mais blocos
 	int total_pass_limit_block = blocks / ARS_MAX_THREADS;
 
-	// Total de passos padrıes para 1 bloco
+	// Total de passos padr√µes para 1 bloco
 	int total_pass = 1;
 
 	// Somar 1 passo caso tenha mais de 1 bloco
 	if (blocks > 1)
 		total_pass = 2;
 
-	// Inicializa tamanho padr„o da memoria compartilha, sempre 1024 para n„o dar problemas...
+	// Inicializa tamanho padr√£o da memoria compartilha, sempre 1024 para n√£o dar problemas...
 	int sharedMemSize = sizeof(int) * ARS_MAX_THREADS;
 
-	// Faz a reduÁ„o inicial
+	// Faz a redu√ß√£o inicial
 	simple_reduction_shared << <blocks, threads, sharedMemSize >> >(input, global, arrSize);
 
-	// Chama todos os passos restantes para terminar a reduÁ„o dentro do vetor global
+	// Chama todos os passos restantes para terminar a redu√ß√£o dentro do vetor global
 	for (int i = 1; i < total_pass_limit_block + total_pass; i++){
 
 		simple_reduction_shared << <blocks, threads, sharedMemSize >> >(global, global, arrSize);
 	}
 
-	// DepuraÁ„o
+	// Depura√ß√£o
 	if (debug){
 		int maxValue;
 		cudaMemcpy(&maxValue, &global[0], sizeof(int), cudaMemcpyDeviceToHost);
@@ -303,12 +324,12 @@ void callReduction(int* input, int* global, int* arrSize, int maxArrSize, bool d
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o FACADE para a reduÁ„o de max, poÌs deve ser feita em passos
-// double* input: o espaÁo a ser reduzido
-// double* global: o local onde a reduÁ„o ser· executada
-// int* max: o local onde ser„o armazenados os indices de max
-// int arrSize: o tamanho do espaÁo onde efetuar a busca
-// bool debug: flag que identifica se ser· impresso na tela dados de debug
+// Fun√ß√£o FACADE para a redu√ß√£o de max, po√≠s deve ser feita em passos
+// double* input: o espa√ßo a ser reduzido
+// double* global: o local onde a redu√ß√£o ser√° executada
+// int* max: o local onde ser√£o armazenados os indices de max
+// int arrSize: o tamanho do espa√ßo onde efetuar a busca
+// bool debug: flag que identifica se ser√° impresso na tela dados de debug
 //---------------------------------------------------------------------
 
 void callReductionMax(double* input, double* global, int* max, int* arrSize, int maxArrSize, bool debug){
@@ -319,31 +340,31 @@ void callReductionMax(double* input, double* global, int* max, int* arrSize, int
 	// Apenas calcula blocos e threads a serem utilizados
 	calculateBlocks(maxArrSize, &blocks, &threads);
 
-	// Calcula total de passos extras a serem executados para finalizar a reduÁ„o
+	// Calcula total de passos extras a serem executados para finalizar a redu√ß√£o
 	int total_pass_limit_block = blocks / ARS_MAX_THREADS;
 
-	// Inicia quantidade de passos padrıa
+	// Inicia quantidade de passos padr√µa
 	int total_pass = 1;
 
 	// Caso tenha mais de 1 bloco deve-se fazer em dois passos
 	if (blocks > 1)
 		total_pass = 2;
 
-	// Torna par o n˙mero de threads para evitar erros de acesso a memÛria compartilhada
+	// Torna par o n√∫mero de threads para evitar erros de acesso a mem√≥ria compartilhada
 	if (threads % 2 != 0)
 		threads += 1;
 
-	// Memoria compartilhada padr„o de dois tipos de vari·veis
+	// Memoria compartilhada padr√£o de dois tipos de vari√°veis
 	int sharedMemSize = sizeof(double) * ARS_MAX_THREADS + sizeof(int) * ARS_MAX_THREADS;
 
-	// Chama primeiro passo da reduÁ„o
+	// Chama primeiro passo da redu√ß√£o
 	simple_reduction_shared_max << <blocks, threads, sharedMemSize >> >(input, global, max, arrSize, true);
 
-	// Chama restande dos passos para quantidade de blocos iniciais, calcula resto da reduÁ„o em global
+	// Chama restande dos passos para quantidade de blocos iniciais, calcula resto da redu√ß√£o em global
 	for (int i = 1; i < total_pass_limit_block + total_pass; i++)
 		simple_reduction_shared_max << <blocks, threads, sharedMemSize >> >(global, global, max, arrSize, false);
 
-	// Impress„o de depuraÁ„o
+	// Impress√£o de depura√ß√£o
 	if (debug){
 		double result;
 		cudaMemcpy(&result, global, sizeof(double), cudaMemcpyDeviceToHost);
@@ -355,7 +376,7 @@ void callReductionMax(double* input, double* global, int* max, int* arrSize, int
 }
 
 typedef struct aux_variables_CPU{
-	// Auxiliares para operaÁıes de double
+	// Auxiliares para opera√ß√µes de double
 	double* op_aux_double_1;
 	double* op_aux_double_2;
 	double* op_aux_double_3;
@@ -363,7 +384,7 @@ typedef struct aux_variables_CPU{
 	double* op_aux_double_5;
 	double* op_aux_double_6;
 
-	// Auxiliares para operaÁıes de int
+	// Auxiliares para opera√ß√µes de int
 	int* op_aux_int_1;
 	int* op_aux_int_2;
 	int* op_aux_int_3;
@@ -373,7 +394,7 @@ typedef struct aux_variables_CPU{
 }AUX_OP_VARIABLES_CPU;
 
 typedef struct aux_variables_GPU{
-	// Auxiliares para operaÁıes de double
+	// Auxiliares para opera√ß√µes de double
 	double* op_aux_double_1;
 	double* op_aux_double_2;
 	double* op_aux_double_3;
@@ -393,7 +414,7 @@ typedef struct aux_variables_GPU{
 	double* op_aux_double_15;
 	double* op_aux_double_16;
 
-	// Auxiliares para operaÁıes de int
+	// Auxiliares para opera√ß√µes de int
 	int* op_aux_int_1;
 	int* op_aux_int_2;
 	int* op_aux_int_3;
@@ -470,7 +491,7 @@ FUSION_ART_CPU net_cpu;
 AUX_OP_VARIABLES_CPU aux_cpu;
 AUX_OP_VARIABLES_GPU aux_gpu;
 
-// Contagem de execuÁ„o
+// Contagem de execu√ß√£o
 bool learning;
 int iteractions;
 int totalLeraning;
@@ -606,10 +627,10 @@ void init_network(FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* net_gpu, AUX_OP_VARIA
 	// Antes de inicializar limpar toda a memoria
 	clearNetGPU(net_cpu, net_gpu, aux_cpu, aux_gpu);
 
-	// InicializaÁ„o cpu
+	// Inicializa√ß√£o cpu
 	net_cpu->neurons_activities = (double*)malloc(sizeof(double) * net_cpu->total_fields_reserved_memmory);
 
-	// InicializaÁ„o gpu
+	// Inicializa√ß√£o gpu
 	cudaMalloc((void**)&net_gpu->utilized_neurons, sizeof(int));
 	cudaMalloc((void**)&net_gpu->total_neurons, sizeof(int));
 	cudaMalloc((void**)&net_gpu->neurons_activities, sizeof(double) * net_cpu->total_fields_reserved_memmory);
@@ -632,11 +653,11 @@ void init_network(FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* net_gpu, AUX_OP_VARIA
 	calculateBlocks(tot, &b, &t);
 	fill << <b, t >> >(net_gpu->neurons_weights, tot, 1.0);
 
-	// InicializaÁ„o de pesos padr„o
+	// Inicializa√ß√£o de pesos padr√£o
 	if (default_weights != 0x0)
 		cudaMemcpy(net_gpu->neurons_weights, default_weights, sizeof(double) * default_weights_size, cudaMemcpyHostToDevice);
 
-	// InicializaÁ„o das variaveis
+	// Inicializa√ß√£o das variaveis
 	int utilized_neurons = net_cpu->utilized_neurons;
 	cudaMemcpy(net_gpu->utilized_neurons, &utilized_neurons, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(net_gpu->total_neurons, &net_cpu->total_neurons, sizeof(int), cudaMemcpyHostToDevice);
@@ -644,66 +665,66 @@ void init_network(FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* net_gpu, AUX_OP_VARIA
 	cudaMemcpy(net_gpu->total_fields_reserved_memmory, &net_cpu->total_fields_reserved_memmory, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(net_gpu->fields, net_cpu->fields, sizeof(int) * net_cpu->total_fields, cudaMemcpyHostToDevice);
 
-	// aux_int_1 È utilizado para mapear a posiÁ„o inicial de um campo dentro de neurons_weights. O mapeamento È
-	// feito de 0 a n, onde n È o total de campos somados de todos os neuronios
+	// aux_int_1 √© utilizado para mapear a posi√ß√£o inicial de um campo dentro de neurons_weights. O mapeamento √©
+	// feito de 0 a n, onde n √© o total de campos somados de todos os neuronios
 	cudaMalloc((void**)&aux_gpu->op_aux_int_1, sizeof(int) * net_cpu->total_neurons * net_cpu->total_fields);
 	cudaMemcpy(aux_gpu->op_aux_int_1, aux_cpu->op_aux_int_1, sizeof(int) * net_cpu->total_neurons * net_cpu->total_fields, cudaMemcpyHostToDevice);
 
-	// aux_int_2 È utilizado para realizaÁ„o de reduÁıes para achar indice do valor m·ximo
+	// aux_int_2 √© utilizado para realiza√ß√£o de redu√ß√µes para achar indice do valor m√°ximo
 	cudaMalloc((void**)&aux_gpu->op_aux_int_2, sizeof(int) * net_cpu->total_neurons);
 
-	// aux_int_3 È utilizado para guardar o endereÁo do indice maximo das reducoes
+	// aux_int_3 √© utilizado para guardar o endere√ßo do indice maximo das reducoes
 	cudaMalloc((void**)&aux_gpu->op_aux_int_3, sizeof(int) * net_cpu->total_fields);
 
 	// aux_int_4 quantos campos estao ativos
 	cudaMalloc((void**)&aux_gpu->op_aux_int_4, sizeof(int));
 
-	// aux_double_1 È utilizado para guardar o fuzzyand
+	// aux_double_1 √© utilizado para guardar o fuzzyand
 	cudaMalloc((void**)&aux_gpu->op_aux_double_1, sizeof(double) * net_cpu->total_fields_reserved_memmory * net_cpu->total_neurons);
 
-	// aux_double_2 È utilizado para guardar a norma do fuzzyand
+	// aux_double_2 √© utilizado para guardar a norma do fuzzyand
 	cudaMalloc((void**)&aux_gpu->op_aux_double_2, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 
-	// aux_double_3 È utilizado para guardar a norma de neurons_weight e a divisao de t
+	// aux_double_3 √© utilizado para guardar a norma de neurons_weight e a divisao de t
 	cudaMalloc((void**)&aux_gpu->op_aux_double_3, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 
-	// aux_double_4 È utilizado para guardar o t_vector completo
+	// aux_double_4 √© utilizado para guardar o t_vector completo
 	cudaMalloc((void**)&aux_gpu->op_aux_double_4, sizeof(double) * net_cpu->total_neurons);
 
-	// aux_double_5 È utilizado para guardar a norma da atividade
+	// aux_double_5 √© utilizado para guardar a norma da atividade
 	cudaMalloc((void**)&aux_gpu->op_aux_double_5, sizeof(double) * net_cpu->total_fields);
 
-	// aux_double_6 È utilizado para guardar cada valor de m_jk
+	// aux_double_6 √© utilizado para guardar cada valor de m_jk
 	cudaMalloc((void**)&aux_gpu->op_aux_double_6, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 
-	// aux_double_7 È utilizado para guardar cada valor de resonancia
+	// aux_double_7 √© utilizado para guardar cada valor de resonancia
 	cudaMalloc((void**)&aux_gpu->op_aux_double_7, sizeof(double) * net_cpu->total_neurons);
 
-	// aux_double_8 È utilizado para guardar a soma de T com as resonancias
+	// aux_double_8 √© utilizado para guardar a soma de T com as resonancias
 	cudaMalloc((void**)&aux_gpu->op_aux_double_8, sizeof(double) * net_cpu->total_neurons);
 
-	// aux_double_9 È utilizado para realizaÁ„o de reduÁıes para achar valor m·ximo
+	// aux_double_9 √© utilizado para realiza√ß√£o de redu√ß√µes para achar valor m√°ximo
 	cudaMalloc((void**)&aux_gpu->op_aux_double_9, sizeof(double) * net_cpu->total_neurons);
 
-	// aux_double_10 È utilizado para guardar a multiplicacao por cada elemento de cada neuronio
+	// aux_double_10 √© utilizado para guardar a multiplicacao por cada elemento de cada neuronio
 	cudaMalloc((void**)&aux_gpu->op_aux_double_10, sizeof(double) * net_cpu->total_fields_reserved_memmory * net_cpu->total_neurons);
 
-	// aux_double 11 È utilizado para guardar o quadrado da atividade
+	// aux_double 11 √© utilizado para guardar o quadrado da atividade
 	cudaMalloc((void**)&aux_gpu->op_aux_double_11, sizeof(double) * net_cpu->total_fields_reserved_memmory);
 
-	// aux_double 12 È utilizado para guardar o quadrado de cada valor de cada neuronio
+	// aux_double 12 √© utilizado para guardar o quadrado de cada valor de cada neuronio
 	cudaMalloc((void**)&aux_gpu->op_aux_double_12, sizeof(double) * net_cpu->total_fields_reserved_memmory * net_cpu->total_neurons);
 
-	// aux_double 13 È utilizado para guardar o dot entra atividade e pesos da rede para cada neuronio
+	// aux_double 13 √© utilizado para guardar o dot entra atividade e pesos da rede para cada neuronio
 	cudaMalloc((void**)&aux_gpu->op_aux_double_13, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 
-	// aux_double 14 È utilizado para guardar a norma do quadrado da atividade
+	// aux_double 14 √© utilizado para guardar a norma do quadrado da atividade
 	cudaMalloc((void**)&aux_gpu->op_aux_double_14, sizeof(double) * net_cpu->total_fields);
 
-	// aux_double 15 È utilizado para guardar a norma do quadrado dos pesos
+	// aux_double 15 √© utilizado para guardar a norma do quadrado dos pesos
 	cudaMalloc((void**)&aux_gpu->op_aux_double_15, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 
-	// aux_double 16 È utilizado para guardar as divisoes do cos(theta)
+	// aux_double 16 √© utilizado para guardar as divisoes do cos(theta)
 	cudaMalloc((void**)&aux_gpu->op_aux_double_16, sizeof(double) * net_cpu->total_fields * net_cpu->total_neurons);
 }
 
@@ -1330,7 +1351,7 @@ void runNetwork(FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* net_gpu, AUX_OP_VARIABL
 		callReductionMax(aux_gpu->op_aux_double_8, aux_gpu->op_aux_double_9, aux_gpu->op_aux_int_2, net_gpu->utilized_neurons, net_cpu->total_neurons, debug);
 	}
 
-	// Aprendizado e criaÁ„o de novos neuronios
+	// Aprendizado e cria√ß√£o de novos neuronios
 	calculateBlocks(net_cpu->total_fields, &blocks, &threads);
 	FUSION_learn_and_readout << <blocks, threads >> >(net_gpu->neurons_weights, aux_gpu->op_aux_double_1, net_gpu->art_to_use, net_gpu->neurons_activities, net_gpu->betas, aux_gpu->op_aux_int_1, net_gpu->fields, net_gpu->total_fields, net_gpu->total_fields_reserved_memmory, aux_gpu->op_aux_int_2, net_gpu->utilized_neurons, learning, net_gpu->learning_rate_decay, debug);
 }
@@ -1642,7 +1663,7 @@ void writeNetwork(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GPU*
 }
 
 void writeConfFile(std::string fileName, FUSION_ART_CPU* net_cpu){
-	// Grava arquivo de configuraÁ„o
+	// Grava arquivo de configura√ß√£o
 	std::ofstream configFile; configFile.open(fileName.c_str(), std::ios::out);
 
 	if (configFile.is_open()){
@@ -1779,10 +1800,10 @@ void loadNetwork(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* 
 		int totalFields = fields.size();
 		int fieldsReservedMemmory = 0;
 
-		// ConfiguraÁ„o da rede
+		// Configura√ß√£o da rede
 		net_cpu->total_neurons = ARS_MAX_NEURONS;
 
-		// configuraÁıes
+		// configura√ß√µes
 		net_cpu->total_fields = totalFields;
 
 		clearNetCPU(net_cpu, aux_cpu);
@@ -1797,8 +1818,8 @@ void loadNetwork(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* 
 
 		net_cpu->total_fields_reserved_memmory = fieldsReservedMemmory;
 
-		// aux 1 È utilizado para mapear a posiÁ„o inicial de um campo dentro de neurons_weights. O mapeamento È
-		// feito de 0 a n, onde n È o total de campos considerando todos os neuronios.
+		// aux 1 √© utilizado para mapear a posi√ß√£o inicial de um campo dentro de neurons_weights. O mapeamento √©
+		// feito de 0 a n, onde n √© o total de campos considerando todos os neuronios.
 		aux_cpu->op_aux_int_1 = (int*)malloc(sizeof(int) * net_cpu->total_neurons * net_cpu->total_fields);
 
 		double* weights;
@@ -1834,7 +1855,7 @@ void loadNetwork(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* 
 			}
 		}
 
-		// InicializaÁ„o indices para auxiliar nas operaÁıes
+		// Inicializa√ß√£o indices para auxiliar nas opera√ß√µes
 		index = 0;
 		for (int i = 0; i < net_cpu->total_neurons * net_cpu->total_fields; i++){
 			int field = i % net_cpu->total_fields;
@@ -1843,7 +1864,7 @@ void loadNetwork(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GPU* 
 			index += current_field_size;
 		}
 
-		// InicializaÁ„o padr„o
+		// Inicializa√ß√£o padr√£o
 		init_network(net_cpu, net_gpu, aux_cpu, aux_gpu, weights, cpy_aux);
 
 		// Libera bariavel auxiliar
@@ -1899,7 +1920,7 @@ void loadConfigFile(std::string fileName, FUSION_ART_CPU* net_cpu, FUSION_ART_GP
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o de teste das rotinar de reduÁ„o e max
+// Fun√ß√£o de teste das rotinar de redu√ß√£o e max
 // Deve imprimir valores consistentes em todo o teste, 
 // caso contrario tem algum problema
 //---------------------------------------------------------------------
@@ -1947,7 +1968,7 @@ void printFreeMem(){
 }
 
 //---------------------------------------------------------------------
-// FunÁ„o de execuÁ„o da rede
+// Fun√ß√£o de execu√ß√£o da rede
 //---------------------------------------------------------------------
 
 double truncF(double val, int digits)
@@ -2018,7 +2039,7 @@ void call(double* stimulus_arr, int stimulus_size, double** output_arr, int* arr
 	cudaEventElapsedTime(&elapsed, start, stop);
 	data_input_time_sum += elapsed;
 
-	// Medir tempo de execuÁ„o
+	// Medir tempo de execu√ß√£o
 	cudaEventRecord(start);
 	runNetwork(&net_cpu, &net_gpu, &aux_gpu, learning, false);
 	//runNetworkB(&net_cpu, &net_gpu, &aux_gpu, learning, false);
@@ -2041,14 +2062,14 @@ void call(double* stimulus_arr, int stimulus_size, double** output_arr, int* arr
 	*output_arr = net_cpu.neurons_activities;
 	*arr_size = net_cpu.total_fields_reserved_memmory;
 
-	// Total de iteraÁıes do algoritmo
+	// Total de itera√ß√µes do algoritmo
 	iteractions++;
 	total_iteractions++;
 
 	if (learning)
 		totalLeraning++;
 
-	// Imprimir apenas apÛs mil execuÁıes
+	// Imprimir apenas ap√≥s mil execu√ß√µes
 	if (iteractions % 10000 == 0){
 		//debug = true;
 		debug("\nMedia do tempo de execucao copia para input: %fs\n", data_input_time_sum / (double)iteractions / 1000.0);
@@ -2064,7 +2085,7 @@ void call(double* stimulus_arr, int stimulus_size, double** output_arr, int* arr
 		debug("Total de iteracoes de aprendizado ate o momento: %d\n", totalLeraning);
 		debug("----------------------------------------------------------\n");
 
-		// Reseta variaveis para nao poluir avaliaÁ„o
+		// Reseta variaveis para nao poluir avalia√ß√£o
 		iteractions = 0;
 		execution_time_sum = 0.0;
 		data_output_time_sum = 0.0;
